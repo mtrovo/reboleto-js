@@ -1,0 +1,68 @@
+﻿<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+  <script type="text/javascript" src="js/app.js"></script>
+  <style type="text/css">
+  .esconde {
+    display:none;
+  }
+  </style>
+</head>
+<body>
+<script type="text/javascript">
+  var boleto_atual;
+  function $(id) document.getElementById(id)
+  window.document.body.onload=function(){
+    var frm=$('frm')
+    var num_callback=function(){
+      if(this.value.trim()==='') return;
+      var g;
+      try {
+        boleto_atual=g=new Boleto(this.value.replace(/\s+/g,''))
+        $('err').innerHTML=''
+      } catch (e){
+        $('err').innerHTML='Número de boleto inválido'
+        return;
+      }
+      
+      var dt=g.getVencimentoComoData()
+      frm.dt.value=dt.getUTCDate() + '/' + (dt.getUTCMonth() + 1) + '/' + dt.getUTCFullYear()
+      frm.vl.value=parseInt(g.preco,10) / 100.0
+    }
+    
+    frm.num.addEventListener('blur', num_callback)
+    if(frm.num.value.length!=0) num_callback.apply(frm.num)
+    
+    frm.btn_regerar.addEventListener('click', function(){
+      if(!boleto_atual) $('err').innerHTML='Inserir um número de boleto primeiro'
+      else {
+        var dtvals=frm.dt.value.split('/').map(function(c) parseInt(c))
+        var new_dt=new Date(Date.UTC(dtvals[2], dtvals[1]-1, dtvals[0]))
+        var new_price=frm.vl.value
+        
+        boleto_atual.alterarVencimento(new_dt)
+        boleto_atual.alterarValor(new_price)
+        
+        $('result_txt').innerHTML=boleto_atual.getNumeroFormatado()
+        $('resultado').classList.remove('esconde')
+      }
+    })
+  }
+</script>
+<h1>Gerador de boleto</h1>
+	<form id="frm" action="">
+    <legend>Dados do boleto</legend>
+		<label for="num">Número:</label><br /><input type="text" name="num" size="80"/> <span id="err"></span><br />
+		<label for="dt">Data:</label><br /><input type="text" name="dt"/><br />
+		<label for="vl">Valor:</label><br /><input type="text" name="vl"/><br /><br />
+		<input name="btn_regerar" type="button" value="Regerar"/>
+	</form>
+  <hr />
+  <div id='resultado' class="resultado esconde">
+    <h1>Boleto gerado</h1>
+    <h2 id="result_txt"></h2>
+  </div>
+</body>
+</html>
