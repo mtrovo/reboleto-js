@@ -1,9 +1,9 @@
-﻿<!DOCTYPE HTML>
+<!DOCTYPE HTML>
 <html lang="en-US">
 <head>
 	<meta charset="UTF-8">
 	<title></title>
-  <script type="text/javascript" src="js/app.js"></script>
+  <script type="text/javascript" src="bin/reboleto.js"></script>
   <style type="text/css">
   .esconde {
     display:none;
@@ -20,7 +20,7 @@
       if(this.value.trim()==='') return;
       var g;
       try {
-        boleto_atual=g=new Boleto(this.value.replace(/\s+/g,''))
+        boleto_atual=g=new Boleto(this.value.replace(/[\s\.]+/g,''))
         $('err').innerHTML=''
       } catch (e){
         $('err').innerHTML='Número de boleto inválido'
