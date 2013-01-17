@@ -1,1 +1,4 @@
-GERE NOVAMENTE SEUS BOLETOS VENCIDOS 
+Reboleto.js
+===========
+
+Revalidador de Boletos bancários
