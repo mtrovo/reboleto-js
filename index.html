@@ -1,70 +1,119 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="viewport" content="width=640" />
+    <head>
+        <meta charset='utf-8'>
+        <meta http-equiv="X-UA-Compatible" content="chrome=1">
+        <meta name="viewport" content="width=640" />
 
-    <link rel="stylesheet" href="stylesheets/core.css" media="screen"/>
-    <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)"/>
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+        <link rel="stylesheet" href="stylesheets/core.css" media="screen"/>
+        <link rel="stylesheet" href="stylesheets/mobile.css" media="handheld, only screen and (max-device-width:640px)"/>
+        <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
 
-    <script type="text/javascript" src="javascripts/modernizr.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
-    <script type="text/javascript">
-      $(document).ready(function () {
-        $('#main_content').headsmart()
-      })
-    </script>
-    <title>Reboleto.js by mtrovo</title>
-  </head>
+        <script type="text/javascript" src="javascripts/modernizr.js"></script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+        <script type="text/javascript" src="javascripts/headsmart.min.js"></script>
+        <script type="text/javascript" src="javascripts/reboleto.js"></script>
+        <script type="text/javascript">
+$(document).ready(function () {
+    var $ = function(id) document.getElementById(id)
+    jQuery('#main_content').headsmart()
+    var boleto_atual;
+    var frm=$('frm')
+    var num_callback=function(){
+        if(this.value.trim()==='') return;
+        var g;
+        try {
+        boleto_atual=g=new Boleto(this.value.replace(/[\s\.]+/g,''))
+        $('err').innerHTML=''
+        } catch (e){
+        $('err').innerHTML='Número de boleto inválido'
+        return;
+        }
 
-  <body>
-    <a id="forkme_banner" href="https://github.com/mtrovo/reboleto-js">View on GitHub</a>
-    <div class="shell">
+        var dt=g.getVencimentoComoData()
+        frm.dt.value=dt.getUTCDate() + '/' + (dt.getUTCMonth() + 1) + '/' + dt.getUTCFullYear()
+        frm.vl.value=parseInt(g.preco,10) / 100.0
+    }
 
-      <header>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <h1>Reboleto.js</h1>
-            <h2>Revalidador de boletos bancários</h2>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
-      </header>
+    frm.num.addEventListener('blur', num_callback)
+    if(frm.num.value.length!=0) num_callback.apply(frm.num)
 
-      <section id="downloads">
-        <span class="inner">
-          <a href="https://github.com/mtrovo/reboleto-js/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/mtrovo/reboleto-js/tarball/master" class="tgz"><em>download</em> .TGZ</a>
-        </span>
-      </section>
+    frm.btn_regerar.addEventListener('click', function(){
+        if(!boleto_atual) $('err').innerHTML='Inserir um número de boleto primeiro'
+        else {
+            var dtvals=frm.dt.value.split('/').map(function(c) parseInt(c))
+            var new_dt=new Date(Date.UTC(dtvals[2], dtvals[1]-1, dtvals[0]))
+            var new_price=frm.vl.value
+
+            boleto_atual.alterarVencimento(new_dt)
+            boleto_atual.alterarValor(new_price)
+
+            $('result_txt').innerHTML=boleto_atual.getNumeroFormatado()
+            $('resultado').classList.remove('esconde')
+        }
+    })
+})
+        </script>
+        <title>Reboleto.js by mtrovo</title>
+    </head>
+
+    <body>
+        <a id="forkme_banner" href="https://github.com/mtrovo/reboleto-js">View on GitHub</a>
+        <div class="shell">
+
+            <header>
+            <span class="ribbon-outer">
+                <span class="ribbon-inner">
+                    <h1>Reboleto.js</h1>
+                    <h2>Revalidador de boletos bancários</h2>
+                </span>
+                <span class="left-tail"></span>
+                <span class="right-tail"></span>
+            </span>
+            </header>
+
+            <section id="downloads">
+            <span class="inner">
+                <a href="https://github.com/mtrovo/reboleto-js/zipball/master" class="zip"><em>download</em> .ZIP</a><a href="https://github.com/mtrovo/reboleto-js/tarball/master" class="tgz"><em>download</em> .TGZ</a>
+            </span>
+            </section>
 
 
-      <span class="banner-fix"></span>
+            <span class="banner-fix"></span>
 
 
-      <section id="main_content">
-        <h1>Reboleto.js</h1>
+            <section id="main_content">
+            <h1>Regerar um boleto</h1>
+            <form id="frm" action="">
+                <legend>Dados do boleto</legend>
+                <label for="num">Número:</label><br /><input type="text" name="num" style='width:100%'/> <span id="err"></span><br />
+                <label for="dt">Data:</label><br /><input type="text" name="dt"/><br />
+                <label for="vl">Valor:</label><br /><input type="text" name="vl"/><br /><br />
+                <input name="btn_regerar" type="button" value="Regerar"/>
+            </form>
+            <hr />
+            <div id='resultado' class="resultado esconde">
+                <h1>Boleto gerado</h1>
+                <h2 id="result_txt"></h2>
+            </div>
 
-<p>Revalidador de Boletos bancários</p>
-      </section>
 
-      <footer>
-        <span class="ribbon-outer">
-          <span class="ribbon-inner">
-            <p>this project by <a href="https://github.com/mtrovo">mtrovo</a> can be found on <a href="https://github.com/mtrovo/reboleto-js">GitHub</a></p>
-          </span>
-          <span class="left-tail"></span>
-          <span class="right-tail"></span>
-        </span>
-        <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
-        <span class="octocat"></span>
-      </footer>
+            </section>
 
-    </div>
+            <footer>
+            <span class="ribbon-outer">
+                <span class="ribbon-inner">
+                    <p>this project by <a href="https://github.com/mtrovo">mtrovo</a> can be found on <a href="https://github.com/mtrovo/reboleto-js">GitHub</a></p>
+                </span>
+                <span class="left-tail"></span>
+                <span class="right-tail"></span>
+            </span>
+            <p>Generated with <a href="http://pages.github.com">GitHub Pages</a> using Merlot</p>
+            <span class="octocat"></span>
+            </footer>
 
-    
-  </body>
+        </div>
+
+
+    </body>
 </html>
